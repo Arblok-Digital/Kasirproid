@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KasirPro — Sistem Kasir Pintar untuk UMKM Indonesia</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════
+   ROOT VARIABLES
+══════════════════════════════════════ */
+:root{
+  --navy:#0a1628;--navy2:#0f2040;--navy3:#162d52;--navy4:#1e3a6e;
+  --gold:#c9973a;--gold-light:#e8b85a;--gold-dim:#c9973a18;--gold-line:#c9973a40;
+  --white:#fff;--off-white:#f8f6f1;--bg:#f0f4f8;--surface:#fff;--surface2:#f8fafc;
+  --text:#1a2740;--muted:#6b7a96;--muted2:#94a3b8;--border:#e2e8f0;
+  --green:#16a34a;--green-dim:#16a34a12;--red:#dc2626;--red-dim:#dc262612;
+  --teal:#0891b2;--teal-dim:#0891b215;
+  --radius:12px;--font-d:'Cormorant Garamond',serif;--font-b:'Outfit',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-b);background:var(--white);color:var(--text);overflow-x:hidden}
+
+/* ══════════════════════════════════════
+   VIEW SWITCHER
+══════════════════════════════════════ */
+#view-landing{display:block}
+#view-dashboard{display:none}
+#view-dashboard.active{display:flex;flex-direction:row;min-height:100vh}
+
+/* ══════════════════════════════════════
+   SHARED: BUTTONS
+══════════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:8px;font-family:var(--font-b);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none;border:none}
+.btn-outline{background:transparent;border:1.5px solid var(--navy);color:var(--navy)}
+.btn-outline:hover{background:var(--navy);color:white}
+.btn-primary{background:var(--navy);color:white}
+.btn-primary:hover{background:var(--navy2);transform:translateY(-1px);box-shadow:0 8px 24px #0a162830}
+.btn-gold{background:var(--gold);color:white}
+.btn-gold:hover{background:var(--gold-light);transform:translateY(-1px);box-shadow:0 8px 24px #c9973a40}
+.btn-lg{padding:14px 32px;font-size:15px;border-radius:10px}
+
+/* ══════════════════════════════════════
+   LANDING — NAVBAR
+══════════════════════════════════════ */
+#lnav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:0 5%;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);transition:all .3s}
+.lnav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;height:68px;gap:32px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:36px;height:36px;background:var(--navy);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-text{font-family:var(--font-d);font-weight:700;font-size:20px;color:var(--navy)}
+.logo-text span{color:var(--gold)}
+.lnav-links{display:flex;gap:28px;margin-left:auto}
+.lnav-links a{font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;transition:color .2s}
+.lnav-links a:hover{color:var(--navy)}
+.lnav-cta{margin-left:16px;display:flex;gap:10px}
+
+/* ══════════════════════════════════════
+   LANDING — HERO
+══════════════════════════════════════ */
+.hero{min-height:100vh;background:var(--navy);position:relative;display:flex;align-items:center;overflow:hidden;padding:120px 5% 80px}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 70% 50%,#162d52 0%,#0a1628 100%)}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(201,151,58,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,151,58,.04) 1px,transparent 1px);background-size:60px 60px}
+.hero-glow{position:absolute;top:20%;right:10%;width:500px;height:500px;background:radial-gradient(circle,rgba(201,151,58,.12) 0%,transparent 70%);pointer-events:none}
+.hero-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;position:relative;z-index:1;width:100%}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;background:var(--gold-dim);border:1px solid var(--gold-line);border-radius:20px;font-size:12px;font-weight:600;color:var(--gold-light);letter-spacing:.5px;margin-bottom:24px}
+.hero-title{font-family:var(--font-d);font-weight:700;font-size:clamp(36px,4vw,58px);color:#fff;line-height:1.15;margin-bottom:20px}
+.hero-title span{color:var(--gold-light)}
+.hero-sub{font-size:16px;color:#8fa3c8;line-height:1.7;margin-bottom:36px;max-width:480px}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:48px}
+.hero-stats{display:flex;gap:32px}
+.stat-item{text-align:center}
+.stat-num{font-family:var(--font-d);font-weight:700;font-size:28px;color:#fff}
+.stat-label{font-size:11px;color:#8fa3c8;text-transform:uppercase;letter-spacing:.8px;margin-top:2px}
+.stat-div{width:1px;background:#ffffff15;align-self:stretch}
+/* Phone mockup */
+.hero-visual{position:relative;display:flex;justify-content:center}
+.phone-wrap{position:relative;width:280px}
+.phone-frame{width:280px;background:var(--navy2);border:2px solid #ffffff15;border-radius:36px;padding:16px;box-shadow:0 40px 80px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.05)}
+.phone-notch{width:80px;height:6px;background:#ffffff20;border-radius:3px;margin:0 auto 14px}
+.phone-screen{background:#1c1008;border-radius:20px;overflow:hidden;min-height:420px}
+.ps-header{background:#261a0c;padding:12px 14px;border-bottom:1px solid #4a3520}
+.ps-logo{display:flex;align-items:center;gap:8px}
+.ps-logo-icon{width:28px;height:28px;background:#e8a930;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.ps-logo-name{font-family:var(--font-d);font-weight:700;font-size:13px;color:#e8a930}
+.ps-tabs{display:flex;gap:2px;padding:6px 10px;background:#2f2010}
+.ps-tab{flex:1;padding:5px 2px;border-radius:6px;font-size:9px;font-weight:600;text-align:center;color:#7a6040}
+.ps-tab.active{background:#3a2815;color:#e8a930}
+.ps-body{padding:10px 12px}
+.ps-mgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.ps-mc{background:#2f2010;border:1px solid #4a3520;border-radius:8px;padding:8px 10px}
+.ps-mc.sel{border-color:#e8a930;background:#e8a93018}
+.ps-mc-name{font-size:9px;font-weight:600;color:#f0ddb8;margin-bottom:2px}
+.ps-mc-price{font-size:9px;color:#e8a930;font-weight:700}
+.ps-mc-badge{float:right;background:#e8a930;color:#1c1008;font-size:8px;font-weight:700;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:-2px}
+.ps-total{background:#e8a93020;border:1px solid #e8a93040;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center}
+.ps-total-l{font-size:9px;color:#e8a930;font-weight:600}
+.ps-total-v{font-family:var(--font-d);font-size:15px;font-weight:700;color:#e8a930}
+.ps-btn{width:100%;margin-top:8px;padding:9px;background:#e8a930;border:none;border-radius:8px;color:#1c1008;font-weight:700;font-size:10px}
+.phone-glow{position:absolute;top:-20px;right:-30px;width:200px;height:200px;background:radial-gradient(circle,rgba(201,151,58,.2) 0%,transparent 70%);pointer-events:none}
+.fbadge{position:absolute;background:white;border-radius:12px;padding:8px 14px;box-shadow:0 8px 32px rgba(0,0,0,.15);display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--text);white-space:nowrap}
+.fb1{top:20px;right:-60px;animation:fl1 3s ease-in-out infinite}
+.fb2{bottom:60px;left:-70px;animation:fl2 3.5s ease-in-out infinite}
+.fb-dot{width:8px;height:8px;border-radius:50%}
+@keyframes fl1{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes fl2{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+/* ══════════════════════════════════════
+   LANDING — SECTIONS
+══════════════════════════════════════ */
+.trust{padding:48px 5%;background:var(--off-white);border-bottom:1px solid var(--border)}
+.trust-inner{max-width:1200px;margin:0 auto;text-align:center}
+.trust-lbl{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:24px}
+.trust-logos{display:flex;justify-content:center;align-items:center;gap:48px;flex-wrap:wrap}
+.trust-logo{font-family:var(--font-d);font-size:18px;font-weight:600;color:#c0c8d8}
+section.ls{padding:96px 5%}
+.sec-inner{max-width:1200px;margin:0 auto}
+.sec-lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);margin-bottom:12px}
+.sec-title{font-family:var(--font-d);font-weight:700;font-size:clamp(28px,3vw,44px);color:var(--navy);line-height:1.2;margin-bottom:16px}
+.sec-sub{font-size:16px;color:var(--muted);line-height:1.7;max-width:520px}
+.tc{text-align:center}.tc .sec-sub{margin:0 auto}
+/* Features */
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:64px}
+.feat-card{padding:32px;border:1px solid var(--border);border-radius:16px;transition:all .3s;position:relative;overflow:hidden}
+.feat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-light));transform:scaleX(0);transition:transform .3s}
+.feat-card:hover{border-color:var(--gold-line);box-shadow:0 16px 48px rgba(201,151,58,.1);transform:translateY(-4px)}
+.feat-card:hover::before{transform:scaleX(1)}
+.feat-icon{width:52px;height:52px;background:var(--navy);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:20px}
+.feat-title{font-family:var(--font-d);font-weight:700;font-size:20px;color:var(--navy);margin-bottom:10px}
+.feat-desc{font-size:14px;color:var(--muted);line-height:1.7}
+.feat-tag{display:inline-block;margin-top:14px;padding:3px 10px;background:var(--gold-dim);color:var(--gold);font-size:11px;font-weight:600;border-radius:6px}
+/* How */
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:64px;position:relative}
+.steps-grid::before{content:'';position:absolute;top:36px;left:12%;right:12%;height:2px;background:linear-gradient(90deg,var(--gold-line),var(--gold),var(--gold-line));z-index:0}
+.step-item{text-align:center;position:relative;z-index:1;padding:0 16px}
+.step-circle{width:72px;height:72px;border-radius:50%;background:white;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-family:var(--font-d);font-size:24px;font-weight:700;color:var(--gold);box-shadow:0 4px 20px rgba(201,151,58,.15)}
+.step-title{font-family:var(--font-d);font-weight:600;font-size:17px;color:var(--navy);margin-bottom:8px}
+.step-desc{font-size:13px;color:var(--muted);line-height:1.6}
+/* Demo section */
+.l-demo{background:var(--navy);padding:96px 5%}
+.l-demo-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.demo-screen{background:#0f1e38;border:1px solid #1e3a6e;border-radius:20px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,.4)}
+.ds-hdr{background:#162d52;padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #1e3a6e}
+.ds-dots{display:flex;gap:6px}
+.ds-dot{width:10px;height:10px;border-radius:50%}
+.ds-ttl{font-size:12px;font-weight:600;color:#8fa3c8;margin-left:8px}
+.ds-body{padding:20px}
+.ds-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.ds-kc{background:#0a1628;border:1px solid #1e3a6e;border-radius:10px;padding:12px}
+.ds-kl{font-size:10px;color:#6b7a96;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.ds-kv{font-family:var(--font-d);font-size:20px;font-weight:700;color:#e8b85a}
+.ds-kv.g{color:#4caf6e}
+.ds-tbl{background:#0a1628;border:1px solid #1e3a6e;border-radius:10px;overflow:hidden}
+.ds-tr{display:grid;grid-template-columns:1fr 80px 80px 80px;gap:8px;padding:9px 14px;font-size:11px;border-bottom:1px solid #1e3a6e}
+.ds-tr:last-child{border-bottom:none}
+.ds-tr.h{background:#162d52;color:#8fa3c8;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.ds-tr .g{color:#4caf6e;font-weight:600}.ds-tr .go{color:#e8b85a;font-weight:600}
+/* Pricing */
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:64px}
+.pc{border:1.5px solid var(--border);border-radius:20px;padding:36px;position:relative;transition:all .3s}
+.pc.pop{border-color:var(--gold);box-shadow:0 20px 60px rgba(201,151,58,.12)}
+.pop-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--gold);color:white;font-size:12px;font-weight:700;padding:4px 18px;border-radius:20px;white-space:nowrap}
+.pc-name{font-family:var(--font-d);font-weight:700;font-size:20px;color:var(--navy);margin-bottom:8px}
+.pc-desc{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5}
+.pc-amt{display:flex;align-items:baseline;gap:4px;margin-bottom:6px}
+.pc-rp{font-size:16px;font-weight:700;color:var(--navy)}
+.pc-num{font-family:var(--font-d);font-weight:700;font-size:40px;color:var(--navy)}
+.pc-per{font-size:14px;color:var(--muted)}
+.pc-save{font-size:12px;color:var(--green);font-weight:600;margin-bottom:28px}
+.pc-div{height:1px;background:var(--border);margin-bottom:24px}
+.pc-feats{display:flex;flex-direction:column;gap:12px;margin-bottom:32px}
+.pf{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text)}
+.pf.off{color:var(--muted)}
+.pf-i{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.pc .btn{width:100%;justify-content:center}
+/* Testi */
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:64px}
+.tc-card{background:white;border:1px solid var(--border);border-radius:16px;padding:28px;transition:all .3s}
+.tc-card:hover{box-shadow:0 12px 40px rgba(0,0,0,.08);transform:translateY(-4px)}
+.tc-stars{color:var(--gold);font-size:16px;margin-bottom:14px;letter-spacing:2px}
+.tc-text{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:20px;font-style:italic}
+.tc-auth{display:flex;align-items:center;gap:12px}
+.tc-av{width:42px;height:42px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.tc-name{font-weight:700;font-size:14px;color:var(--navy)}
+.tc-role{font-size:12px;color:var(--muted)}
+/* CTA */
+.l-cta{background:var(--navy);padding:96px 5%;text-align:center;position:relative;overflow:hidden}
+.l-cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:300px;background:radial-gradient(ellipse,rgba(201,151,58,.15) 0%,transparent 70%);pointer-events:none}
+.l-cta-inner{max-width:640px;margin:0 auto;position:relative;z-index:1}
+.l-cta-title{font-family:var(--font-d);font-weight:700;font-size:clamp(32px,4vw,52px);color:white;line-height:1.2;margin-bottom:16px}
+.l-cta-title span{color:var(--gold-light)}
+.l-cta-sub{font-size:16px;color:#8fa3c8;line-height:1.7;margin-bottom:36px}
+.l-cta-note{margin-top:20px;font-size:13px;color:#6b7a96}
+/* Footer */
+footer{background:var(--navy);border-top:1px solid #1e3a6e;padding:48px 5% 28px}
+.footer-inner{max-width:1200px;margin:0 auto}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
+.footer-brand p{font-size:13px;color:#6b7a96;line-height:1.7;max-width:280px;margin-top:14px}
+.fc-title{font-size:13px;font-weight:700;color:white;margin-bottom:16px;text-transform:uppercase;letter-spacing:.5px}
+.fc-links{display:flex;flex-direction:column;gap:10px}
+.fc-links a{font-size:13px;color:#6b7a96;text-decoration:none;transition:color .2s}
+.fc-links a:hover{color:var(--gold-light)}
+.footer-bot{border-top:1px solid #1e3a6e;padding-top:24px;display:flex;justify-content:space-between;align-items:center}
+.footer-copy{font-size:12px;color:#6b7a96}
+.footer-made{font-size:12px;color:#6b7a96}
+.footer-made span{color:var(--gold-light)}
+
+/* ══════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════ */
+.fade-up{opacity:0;transform:translateY(30px);transition:all .7s cubic-bezier(.4,0,.2,1)}
+.fade-up.visible{opacity:1;transform:translateY(0)}
+.fade-up:nth-child(2){transition-delay:.1s}.fade-up:nth-child(3){transition-delay:.2s}
+.fade-up:nth-child(4){transition-delay:.3s}.fade-up:nth-child(5){transition-delay:.4s}
+.fade-up:nth-child(6){transition-delay:.5s}
+
+/* ══════════════════════════════════════
+   DASHBOARD — LAYOUT
+══════════════════════════════════════ */
+#view-dashboard{flex-direction:row;min-height:100vh;background:var(--bg)}
+#view-dashboard.active{display:flex}
+/* Sidebar */
+.sb{width:240px;background:var(--navy);height:100vh;position:fixed;top:0;left:0;display:flex;flex-direction:column;z-index:100}
+.sb-logo{padding:22px 20px;border-bottom:1px solid #1e3a6e;display:flex;align-items:center;gap:10px}
+.sb-logo-icon{width:34px;height:34px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.sb-logo-text{font-family:var(--font-d);font-weight:700;font-size:18px;color:white}
+.sb-logo-text span{color:var(--gold-light)}
+.sb-nav{padding:14px 12px;flex:1;overflow-y:auto}
+.sb-sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#4a6080;padding:8px 8px 4px;margin-top:6px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;transition:all .2s;margin-bottom:2px;color:#8fa3c8;font-size:14px;font-weight:500;border:none;background:none;width:100%;text-align:left}
+.sb-item:hover{background:#162d52;color:white}
+.sb-item.active{background:var(--gold-dim);border:1px solid var(--gold-line);color:var(--gold-light)}
+.sb-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.sb-badge{margin-left:auto;background:var(--gold);color:#1c1008;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px}
+.sb-back{display:flex;align-items:center;gap:8px;padding:13px 20px;border-top:1px solid #1e3a6e;cursor:pointer;color:var(--gold-light);font-size:13px;font-weight:600;transition:all .2s;border-left:none;border-right:none;border-bottom:none;background:#0f2040;width:100%;text-align:left;flex-shrink:0}
+.sb-back:hover{background:#162d52;color:#fff}
+.sb-user{padding:14px 20px;border-top:1px solid #1e3a6e;display:flex;align-items:center;gap:10px}
+.sb-av{width:34px;height:34px;border-radius:50%;background:var(--navy3);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.sb-uname{font-size:13px;font-weight:600;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-urole{font-size:11px;color:#6b7a96}
+/* Topbar */
+.db-main{margin-left:240px;flex:1;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:64px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
+.tb-title{font-family:var(--font-d);font-weight:700;font-size:20px;color:var(--navy)}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.tb-date{font-size:13px;color:var(--muted);font-weight:500}
+.tb-sync{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:var(--green-dim);border:1px solid #16a34a30;font-size:12px;font-weight:600;color:var(--green)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.tb-notif{width:36px;height:36px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;position:relative}
+.nb-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid white}
+/* Content */
+.db-content{padding:24px 28px;flex:1}
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;transition:all .2s}
+.kpi:hover{box-shadow:0 8px 24px rgba(0,0,0,.06);transform:translateY(-2px)}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi.gold::after{background:linear-gradient(90deg,var(--gold),var(--gold-light))}
+.kpi.green::after{background:linear-gradient(90deg,#16a34a,#4ade80)}
+.kpi.blue::after{background:linear-gradient(90deg,#2563eb,#60a5fa)}
+.kpi.teal::after{background:linear-gradient(90deg,#0891b2,#22d3ee)}
+.kpi-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px}
+.kpi-val{font-family:var(--font-d);font-weight:700;font-size:28px;color:var(--navy);margin-bottom:8px}
+.kpi-ch{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600}
+.kpi-ch.up{color:var(--green)}.kpi-ch.dn{color:var(--red)}
+.kpi-ico{position:absolute;top:16px;right:16px;font-size:28px;opacity:.15}
+/* Grid */
+.g2{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px}
+.g-eq{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px}
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.card-hd{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-family:var(--font-d);font-weight:700;font-size:16px;color:var(--navy)}
+.card-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.card-act{font-size:12px;font-weight:600;color:var(--gold);cursor:pointer;border:none;background:none}
+.card-bd{padding:18px}
+/* Bar chart */
+.chart-area{height:180px;display:flex;align-items:flex-end;gap:6px;padding:0 4px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{width:100%;border-radius:5px 5px 0 0;cursor:pointer}
+.bar:hover{filter:brightness(1.1)}
+.bar.omset{background:linear-gradient(180deg,var(--gold-light),var(--gold))}
+.bar.profit{background:linear-gradient(180deg,#4ade80,#16a34a)}
+.bar-lbl{font-size:10px;color:var(--muted);text-align:center}
+.chart-legend{display:flex;gap:16px;margin-bottom:10px}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.leg-dot{width:10px;height:10px;border-radius:3px}
+/* Donut */
+.donut-wrap{display:flex;align-items:center;gap:20px}
+.donut-legend{flex:1}
+.dl-item{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13px}
+.dl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dl-lbl{flex:1;color:var(--text)}
+.dl-val{font-weight:700;color:var(--navy)}
+.dl-pct{font-size:11px;color:var(--muted);margin-left:4px}
+/* Table */
+.dtbl{width:100%;border-collapse:collapse}
+.dtbl th{padding:9px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);background:var(--surface2);border-bottom:1px solid var(--border)}
+.dtbl td{padding:12px 14px;font-size:13px;border-bottom:1px solid var(--border);color:var(--text)}
+.dtbl tr:last-child td{border-bottom:none}
+.dtbl tr:hover td{background:var(--surface2)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge.green{background:var(--green-dim);color:var(--green)}
+.badge.gold{background:var(--gold-dim);color:var(--gold)}
+.badge.teal{background:var(--teal-dim);color:var(--teal)}
+.badge.red{background:var(--red-dim);color:var(--red)}
+/* Menu rank */
+.mr-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.mr-item:last-child{border-bottom:none}
+.mr-num{font-family:var(--font-d);font-weight:700;font-size:16px;color:var(--gold);width:18px;flex-shrink:0}
+.mr-bwrap{flex:1}
+.mr-name{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:3px}
+.mr-track{height:4px;background:var(--bg);border-radius:2px;overflow:hidden}
+.mr-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--gold-light))}
+.mr-stats{text-align:right;flex-shrink:0}
+.mr-omset{font-size:13px;font-weight:700;color:var(--navy)}
+.mr-qty{font-size:11px;color:var(--muted)}
+/* Date filter */
+.df{display:flex;gap:8px;margin-bottom:18px}
+.df-btn{padding:6px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:var(--font-b);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
+.df-btn.active{background:var(--navy);color:white;border-color:var(--navy)}
+
+/* ══════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════ */
+@media(max-width:1100px){
+  .kpi-row{grid-template-columns:1fr 1fr}
+  .g2{grid-template-columns:1fr}
+}
+@media(max-width:960px){
+  .feat-grid,.price-grid,.testi-grid,.steps-grid{grid-template-columns:1fr 1fr}
+  .steps-grid::before{display:none}
+  .hero-inner,.l-demo-inner{grid-template-columns:1fr;gap:48px}
+  .hero-visual{display:none}
+  .footer-top{grid-template-columns:1fr 1fr}
+  .g-eq,.g3{grid-template-columns:1fr}
+}
+@media(max-width:768px){
+  .lnav-links,.lnav-cta{display:none}
+  .feat-grid,.price-grid,.testi-grid,.steps-grid{grid-template-columns:1fr}
+  section.ls{padding:64px 5%}
+  .hero{padding:100px 5% 60px}
+  .footer-top{grid-template-columns:1fr}
+  .footer-bot{flex-direction:column;gap:8px;text-align:center}
+  .sb{transform:translateX(-100%)}
+  .db-main{margin-left:0}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     VIEW 1: LANDING PAGE
+════════════════════════════════════════════════════════ -->
+<div id="view-landing">
+
+<!-- NAVBAR -->
+<nav id="lnav">
+  <div class="lnav-inner">
+    <a href="#" class="logo">
+      <div class="logo-icon">☕</div>
+      <div class="logo-text">Kasir<span>Pro</span></div>
+    </a>
+    <div class="lnav-links">
+      <a href="#fitur">Fitur</a>
+      <a href="#cara-kerja">Cara Kerja</a>
+      <a href="#harga">Harga</a>
+      <a href="#testimoni">Testimoni</a>
+    </div>
+    <div class="lnav-cta">
+      <button class="btn btn-outline" onclick="showDashboard()">Masuk Dashboard</button>
+      <a href="#harga" class="btn btn-primary">Coba Gratis</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div><div class="hero-grid"></div><div class="hero-glow"></div>
+  <div class="hero-inner">
+    <div>
+      <div class="hero-badge">🚀 Kasir Modern untuk UMKM Indonesia</div>
+      <h1 class="hero-title">Kelola Warkop Lu<br><span>Lebih Cerdas,</span><br>Lebih Untung</h1>
+      <p class="hero-sub">Kasir digital lengkap dengan laporan keuangan otomatis, sync Google Sheets realtime, dan print struk Bluetooth — semua dalam satu aplikasi. Tanpa server, tanpa biaya setup.</p>
+      <div class="hero-actions">
+        <a href="#harga" class="btn btn-gold btn-lg">Mulai Gratis 14 Hari →</a>
+        <button class="btn btn-lg" style="border:1.5px solid #ffffff30;color:white;background:transparent" onclick="showDashboard()">Lihat Dashboard</button>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item"><div class="stat-num">2.400+</div><div class="stat-label">UMKM Aktif</div></div>
+        <div class="stat-div"></div>
+        <div class="stat-item"><div class="stat-num">Rp 4,2M</div><div class="stat-label">Omset/hari</div></div>
+        <div class="stat-div"></div>
+        <div class="stat-item"><div class="stat-num">99.8%</div><div class="stat-label">Uptime</div></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="phone-wrap">
+        <div class="phone-glow"></div>
+        <div class="phone-frame">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="ps-header"><div class="ps-logo"><div class="ps-logo-icon">☕</div><div class="ps-logo-name">KasirPro</div></div></div>
+            <div class="ps-tabs"><div class="ps-tab active">🧾 Kasir</div><div class="ps-tab">📊 Laporan</div><div class="ps-tab">⚙️</div></div>
+            <div class="ps-body">
+              <div class="ps-mgrid">
+                <div class="ps-mc sel"><div class="ps-mc-badge">2</div><div class="ps-mc-name">Kopi Hitam</div><div class="ps-mc-price">Rp 5.000</div></div>
+                <div class="ps-mc"><div class="ps-mc-name">Es Teh Manis</div><div class="ps-mc-price">Rp 4.000</div></div>
+                <div class="ps-mc sel"><div class="ps-mc-badge">1</div><div class="ps-mc-name">Mie Goreng</div><div class="ps-mc-price">Rp 10.000</div></div>
+                <div class="ps-mc"><div class="ps-mc-name">Nasi Goreng</div><div class="ps-mc-price">Rp 12.000</div></div>
+              </div>
+              <div class="ps-total"><span class="ps-total-l">Total Pembayaran</span><span class="ps-total-v">Rp 20.000</span></div>
+              <button class="ps-btn">✅ Proses Pembayaran</button>
+            </div>
+          </div>
+        </div>
+        <div class="fbadge fb1"><div class="fb-dot" style="background:#4caf6e"></div>☁️ Tersync ke Sheets</div>
+        <div class="fbadge fb2">🖨️ Print Bluetooth</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST -->
+<div class="trust">
+  <div class="trust-inner">
+    <div class="trust-lbl">Dipercaya ribuan UMKM di seluruh Indonesia</div>
+    <div class="trust-logos">
+      <div class="trust-logo">Warkop Pak Budi</div>
+      <div class="trust-logo">Warung Bu Sari</div>
+      <div class="trust-logo">Laundry Kilat</div>
+      <div class="trust-logo">Toko Sembako Jaya</div>
+      <div class="trust-logo">Kafe Kopi Nusantara</div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="ls" id="fitur" style="background:white">
+  <div class="sec-inner">
+    <div class="tc"><div class="sec-lbl">Fitur Unggulan</div><h2 class="sec-title">Semua yang Lu Butuh,<br>Dalam Satu Aplikasi</h2><p class="sec-sub">Dirancang khusus untuk UMKM Indonesia — simpel dipakai, canggih di dalam.</p></div>
+    <div class="feat-grid">
+      <div class="feat-card fade-up"><div class="feat-icon">🧾</div><div class="feat-title">Kasir Digital</div><div class="feat-desc">Input pesanan cepat dengan tap menu, hitung kembalian otomatis, support tunai / transfer / QRIS. Cocok untuk kasir yang baru belajar sekalipun.</div><span class="feat-tag">Offline First</span></div>
+      <div class="feat-card fade-up"><div class="feat-icon">🖨️</div><div class="feat-title">Print Struk Bluetooth</div><div class="feat-desc">Konek langsung ke printer thermal Bluetooth dari Chrome Android — tanpa app tambahan. Support Xprinter, GOOJPRT, ZJ-Series, dan semua printer ESC/POS.</div><span class="feat-tag">Web Bluetooth</span></div>
+      <div class="feat-card fade-up"><div class="feat-icon">☁️</div><div class="feat-title">Sync Google Sheets</div><div class="feat-desc">Setiap transaksi otomatis masuk ke Google Sheets milik lu. Pantau omset realtime dari HP atau laptop mana pun. Offline? Data antri, sync begitu online.</div><span class="feat-tag">Realtime Sync</span></div>
+      <div class="feat-card fade-up"><div class="feat-icon">📊</div><div class="feat-title">Laporan Keuangan</div><div class="feat-desc">Laporan harian otomatis — Omset, COGS, Opex, Gross Profit, Net Profit, dan Net Margin. Export PDF untuk investor atau CSV untuk backup.</div><span class="feat-tag">Laporan Investor</span></div>
+      <div class="feat-card fade-up"><div class="feat-icon">📅</div><div class="feat-title">Rekap Bulanan</div><div class="feat-desc">Rekap otomatis per bulan lengkap dengan breakdown biaya, menu terlaris, dan perhitungan bagi hasil investor. Semua dalam satu tampilan.</div><span class="feat-tag">Analytics</span></div>
+      <div class="feat-card fade-up"><div class="feat-icon">🔐</div><div class="feat-title">Keamanan PIN</div><div class="feat-desc">Lindungi data keuangan dengan PIN 4 digit. Semua data tersimpan lokal di HP — tidak ada data yang dikirim ke server pihak ketiga tanpa izin lu.</div><span class="feat-tag">Data Aman</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="ls" id="cara-kerja" style="background:var(--off-white)">
+  <div class="sec-inner">
+    <div class="tc"><div class="sec-lbl">Cara Kerja</div><h2 class="sec-title">Mulai dalam 5 Menit</h2><p class="sec-sub">Tidak perlu instal apapun. Buka browser, langsung pakai.</p></div>
+    <div class="steps-grid">
+      <div class="step-item fade-up"><div class="step-circle">1</div><div class="step-title">Daftar & Setup</div><div class="step-desc">Isi nama warkop, alamat, dan info kasir. Selesai 2 menit.</div></div>
+      <div class="step-item fade-up"><div class="step-circle">2</div><div class="step-title">Input Menu</div><div class="step-desc">Tambahkan menu beserta harga. Bisa edit kapan saja.</div></div>
+      <div class="step-item fade-up"><div class="step-circle">3</div><div class="step-title">Mulai Transaksi</div><div class="step-desc">Tap menu, pilih metode bayar, print struk. Semudah itu.</div></div>
+      <div class="step-item fade-up"><div class="step-circle">4</div><div class="step-title">Pantau dari Mana Aja</div><div class="step-desc">Data sync otomatis ke Google Sheets. Pantau omset realtime.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- DASHBOARD PREVIEW -->
+<section class="l-demo">
+  <div class="l-demo-inner">
+    <div>
+      <div class="sec-lbl" style="color:var(--gold-light)">Live Dashboard</div>
+      <h2 class="sec-title" style="color:white">Pantau Semua Outlet<br>dari Satu Tempat</h2>
+      <p class="sec-sub" style="color:#8fa3c8">Dashboard owner real-time — lihat omset, profit, dan performa kasir dari HP atau laptop kapan saja.</p>
+      <div style="margin-top:28px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:flex-start;gap:12px"><div style="width:22px;height:22px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold-line);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:2px">✓</div><div style="font-size:14px;color:#c5d0e6;line-height:1.6"><b style="color:white">Omset realtime</b> — diupdate otomatis setiap transaksi masuk</div></div>
+        <div style="display:flex;align-items:flex-start;gap:12px"><div style="width:22px;height:22px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold-line);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:2px">✓</div><div style="font-size:14px;color:#c5d0e6;line-height:1.6"><b style="color:white">Laporan harian & bulanan</b> — COGS, Opex, Net Profit lengkap</div></div>
+        <div style="display:flex;align-items:flex-start;gap:12px"><div style="width:22px;height:22px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold-line);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:2px">✓</div><div style="font-size:14px;color:#c5d0e6;line-height:1.6"><b style="color:white">Menu terlaris</b> — tau produk mana yang paling cuan tiap hari</div></div>
+      </div>
+      <button class="btn btn-gold btn-lg" style="margin-top:32px" onclick="showDashboard()">Buka Dashboard Sekarang →</button>
+    </div>
+    <div class="demo-screen">
+      <div class="ds-hdr"><div class="ds-dots"><div class="ds-dot" style="background:#ff5f57"></div><div class="ds-dot" style="background:#ffbd2e"></div><div class="ds-dot" style="background:#28c840"></div></div><div class="ds-ttl">KasirPro — Owner Dashboard</div></div>
+      <div class="ds-body">
+        <div class="ds-kpi"><div class="ds-kc"><div class="ds-kl">Omset</div><div class="ds-kv">Rp 1,24jt</div></div><div class="ds-kc"><div class="ds-kl">Net Profit</div><div class="ds-kv g">Rp 387rb</div></div><div class="ds-kc"><div class="ds-kl">Transaksi</div><div class="ds-kv">47</div></div></div>
+        <div class="ds-tbl">
+          <div class="ds-tr h"><span>Tanggal</span><span>Omset</span><span>Profit</span><span>Margin</span></div>
+          <div class="ds-tr"><span style="color:#c5d0e6">Hari ini</span><span class="go">1,24jt</span><span class="g">387rb</span><span class="g">31%</span></div>
+          <div class="ds-tr"><span style="color:#c5d0e6">Kemarin</span><span class="go">1,1jt</span><span class="g">312rb</span><span class="g">28%</span></div>
+          <div class="ds-tr"><span style="color:#c5d0e6">2 hari lalu</span><span class="go">980rb</span><span class="g">271rb</span><span class="g">27%</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="ls" id="harga" style="background:white">
+  <div class="sec-inner">
+    <div class="tc"><div class="sec-lbl">Harga</div><h2 class="sec-title">Transparan, Tanpa Biaya Tersembunyi</h2><p class="sec-sub">Mulai gratis, upgrade kapan saja.</p></div>
+    <div class="price-grid">
+      <div class="pc fade-up">
+        <div class="pc-name">Gratis</div><div class="pc-desc">Untuk yang baru mulai. Fitur dasar tanpa batas waktu.</div>
+        <div class="pc-amt"><span class="pc-rp">Rp</span><span class="pc-num">0</span></div><div class="pc-save">&nbsp;</div>
+        <div class="pc-div"></div>
+        <div class="pc-feats">
+          <div class="pf"><span class="pf-i">✅</span>1 kasir / outlet</div>
+          <div class="pf"><span class="pf-i">✅</span>Kasir digital unlimited</div>
+          <div class="pf"><span class="pf-i">✅</span>Print struk Bluetooth</div>
+          <div class="pf"><span class="pf-i">✅</span>Laporan harian</div>
+          <div class="pf off"><span class="pf-i">❌</span>Sync Google Sheets</div>
+          <div class="pf off"><span class="pf-i">❌</span>Laporan investor PDF</div>
+        </div>
+        <a href="#" class="btn btn-outline">Mulai Gratis</a>
+      </div>
+      <div class="pc pop fade-up">
+        <div class="pop-badge">⭐ Paling Populer</div>
+        <div class="pc-name">Pro</div><div class="pc-desc">Untuk warkop yang serius tumbuh. Semua fitur lengkap.</div>
+        <div class="pc-amt"><span class="pc-rp">Rp</span><span class="pc-num" style="color:var(--gold)">99rb</span><span class="pc-per">/bulan</span></div><div class="pc-save">Hemat Rp 200rb kalau bayar tahunan</div>
+        <div class="pc-div"></div>
+        <div class="pc-feats">
+          <div class="pf"><span class="pf-i">✅</span>1 kasir / outlet</div>
+          <div class="pf"><span class="pf-i">✅</span>Kasir digital unlimited</div>
+          <div class="pf"><span class="pf-i">✅</span>Print struk Bluetooth</div>
+          <div class="pf"><span class="pf-i">✅</span>Laporan harian & bulanan</div>
+          <div class="pf"><span class="pf-i">✅</span>Sync Google Sheets realtime</div>
+          <div class="pf"><span class="pf-i">✅</span>Laporan investor PDF</div>
+        </div>
+        <a href="#" class="btn btn-gold">Coba 14 Hari Gratis</a>
+      </div>
+      <div class="pc fade-up">
+        <div class="pc-name">Bisnis</div><div class="pc-desc">Untuk yang punya lebih dari satu outlet atau kasir.</div>
+        <div class="pc-amt"><span class="pc-rp">Rp</span><span class="pc-num">249rb</span><span class="pc-per">/bulan</span></div><div class="pc-save">Per outlet tambahan Rp 49rb/bulan</div>
+        <div class="pc-div"></div>
+        <div class="pc-feats">
+          <div class="pf"><span class="pf-i">✅</span>Hingga 5 kasir / outlet</div>
+          <div class="pf"><span class="pf-i">✅</span>Kasir digital unlimited</div>
+          <div class="pf"><span class="pf-i">✅</span>Print struk Bluetooth</div>
+          <div class="pf"><span class="pf-i">✅</span>Sync Google Sheets realtime</div>
+          <div class="pf"><span class="pf-i">✅</span>Laporan investor PDF</div>
+          <div class="pf"><span class="pf-i">✅</span>Dashboard owner terpusat</div>
+        </div>
+        <a href="#" class="btn btn-primary">Hubungi Kami</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONI -->
+<section class="ls" id="testimoni" style="background:var(--off-white)">
+  <div class="sec-inner">
+    <div class="tc"><div class="sec-lbl">Testimoni</div><h2 class="sec-title">Kata Mereka yang Sudah Pakai</h2></div>
+    <div class="testi-grid">
+      <div class="tc-card fade-up"><div class="tc-stars">★★★★★</div><div class="tc-text">"Dulu laporan keuangan warkop saya pakai buku tulis, sering salah hitung. Sekarang pakai KasirPro, semua otomatis. Investor saya puas lihat laporannya."</div><div class="tc-auth"><div class="tc-av">👨</div><div><div class="tc-name">Pak Hendra</div><div class="tc-role">Pemilik Warkop Kopi Nusantara, Bandung</div></div></div></div>
+      <div class="tc-card fade-up"><div class="tc-stars">★★★★★</div><div class="tc-text">"Yang bikin saya suka itu bisa print struk langsung dari HP ke printer Bluetooth. Pelanggan saya jadi lebih percaya, kelihatan lebih profesional."</div><div class="tc-auth"><div class="tc-av">👩</div><div><div class="tc-name">Bu Ratna</div><div class="tc-role">Pemilik Warung Makan Bu Ratna, Surabaya</div></div></div></div>
+      <div class="tc-card fade-up"><div class="tc-stars">★★★★★</div><div class="tc-text">"Punya 2 outlet sekarang, bisa dipantau semuanya dari satu tempat. Kapan saja mau cek omset, tinggal buka Google Sheets, udah ada semua."</div><div class="tc-auth"><div class="tc-av">👨‍💼</div><div><div class="tc-name">Mas Dani</div><div class="tc-role">Owner Warung Kopi Mas Dani, Jakarta</div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="l-cta">
+  <div class="l-cta-glow"></div>
+  <div class="l-cta-inner">
+    <h2 class="l-cta-title">Siap Bikin Warkop Lu<br><span>Makin Cuan?</span></h2>
+    <p class="l-cta-sub">Bergabung dengan 2.400+ UMKM yang sudah pakai KasirPro. Mulai gratis, setup 5 menit, langsung jalan.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="#harga" class="btn btn-gold btn-lg">Mulai Gratis Sekarang →</a>
+      <a href="https://wa.me/6289508053795?text=Halo%2C%20saya%20tertarik%20dengan%20KasirPro.%20Bisa%20info%20lebih%20lanjut%3F" target="_blank" class="btn btn-lg" style="border:1.5px solid #ffffff30;color:white;background:transparent">💬 Tanya via WhatsApp</a>
+    </div>
+    <div class="l-cta-note">✓ Gratis 14 hari &nbsp;·&nbsp; ✓ Tanpa kartu kredit &nbsp;·&nbsp; ✓ Cancel kapan saja</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="logo"><div class="logo-icon">☕</div><div class="logo-text" style="color:white">Kasir<span>Pro</span></div></div>
+        <p>Sistem kasir digital untuk UMKM Indonesia. Simpel, handal, dan terjangkau.</p>
+      </div>
+      <div><div class="fc-title">Produk</div><div class="fc-links"><a href="#fitur">Fitur</a><a href="#harga">Harga</a><a href="#" onclick="showDashboard()">Dashboard</a><a href="#">Panduan Setup</a></div></div>
+      <div><div class="fc-title">Dukungan</div><div class="fc-links"><a href="#">Dokumentasi</a><a href="#">FAQ</a><a href="https://wa.me/6289508053795?text=Halo%2C%20saya%20tertarik%20dengan%20KasirPro.%20Bisa%20info%20lebih%20lanjut%3F" target="_blank">WhatsApp</a><a href="#">Email</a></div></div>
+      <div><div class="fc-title">Perusahaan</div><div class="fc-links"><a href="#">Tentang Kami</a><a href="#">Blog</a><a href="#">Karir</a><a href="#">Privasi</a></div></div>
+    </div>
+    <div class="footer-bot">
+      <div class="footer-copy">© 2025 KasirPro. Hak cipta dilindungi.</div>
+      <div class="footer-made">Dibuat dengan ❤️ untuk <span>UMKM Indonesia</span></div>
+    </div>
+  </div>
+</footer>
+
+</div><!-- /view-landing -->
+
+<!-- ════════════════════════════════════════════════════════
+     VIEW 2: DASHBOARD OWNER
+════════════════════════════════════════════════════════ -->
+<div id="view-dashboard">
+
+  <!-- SIDEBAR -->
+  <aside class="sb">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">☕</div>
+      <div class="sb-logo-text">Kasir<span>Pro</span></div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-sec">Menu Utama</div>
+      <button class="sb-item active" onclick="dbPage('dashboard',this)"><span class="sb-icon">📊</span>Dashboard</button>
+      <button class="sb-item" onclick="dbPage('transaksi',this)"><span class="sb-icon">🧾</span>Transaksi<span class="sb-badge">47</span></button>
+      <button class="sb-item" onclick="dbPage('laporan',this)"><span class="sb-icon">📈</span>Laporan</button>
+      <button class="sb-item" onclick="dbPage('menu',this)"><span class="sb-icon">🍽️</span>Menu & Produk</button>
+      <div class="sb-sec">Manajemen</div>
+      <button class="sb-item" onclick="dbPage('outlet',this)"><span class="sb-icon">🏪</span>Outlet</button>
+      <button class="sb-item" onclick="dbPage('kasir',this)"><span class="sb-icon">👥</span>Kasir</button>
+      <button class="sb-item" onclick="dbPage('investor',this)"><span class="sb-icon">💼</span>Investor</button>
+      <div class="sb-sec">Sistem</div>
+      <button class="sb-item" onclick="dbPage('setting',this)"><span class="sb-icon">⚙️</span>Setting</button>
+    </nav>
+    <div class="sb-user">
+      <div class="sb-av">👨‍💼</div>
+      <div><div class="sb-uname">Sanajan Warkop</div><div class="sb-urole">Owner · Plan Pro</div></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="db-main">
+    <div class="topbar">
+      <button onclick="showLanding()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-family:var(--font-b);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;flex-shrink:0" onmouseover="this.style.borderColor='var(--navy)';this.style.color='var(--navy)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">← Landing Page</button>
+      <div class="tb-title" id="tbTitle" style="margin-left:8px">Dashboard</div>
+      <div class="tb-right">
+        <div class="tb-date" id="tbDate"></div>
+        <div class="tb-sync"><div class="sync-dot"></div>Live Sync</div>
+        <div class="tb-notif">🔔<div class="nb-dot"></div></div>
+      </div>
+    </div>
+
+    <div class="db-content">
+
+      <!-- PAGE: DASHBOARD -->
+      <div id="dp-dashboard">
+        <div class="df">
+          <button class="df-btn active" onclick="setKpi('hari',this)">Hari Ini</button>
+          <button class="df-btn" onclick="setKpi('minggu',this)">7 Hari</button>
+          <button class="df-btn" onclick="setKpi('bulan',this)">Bulan Ini</button>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi gold"><div class="kpi-ico">💰</div><div class="kpi-lbl">Total Omset</div><div class="kpi-val" id="k-omset">Rp 1,24jt</div><div class="kpi-ch up">↑ 12,4% vs kemarin</div></div>
+          <div class="kpi green"><div class="kpi-ico">📈</div><div class="kpi-lbl">Net Profit</div><div class="kpi-val" id="k-profit">Rp 387rb</div><div class="kpi-ch up">↑ 8,2% vs kemarin</div></div>
+          <div class="kpi blue"><div class="kpi-ico">🧾</div><div class="kpi-lbl">Transaksi</div><div class="kpi-val" id="k-trx">47</div><div class="kpi-ch up">↑ 5 vs kemarin</div></div>
+          <div class="kpi teal"><div class="kpi-ico">🍽️</div><div class="kpi-lbl">Item Terjual</div><div class="kpi-val" id="k-item">183</div><div class="kpi-ch up">↑ 21 vs kemarin</div></div>
+        </div>
+        <div class="g2">
+          <div class="card">
+            <div class="card-hd"><div><div class="card-title">Omset & Profit 7 Hari</div><div class="card-sub">Perbandingan harian</div></div></div>
+            <div class="card-bd">
+              <div class="chart-legend"><div class="leg-item"><div class="leg-dot" style="background:var(--gold)"></div>Omset</div><div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Net Profit</div></div>
+              <div class="chart-area" id="barChart"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><div><div class="card-title">Metode Pembayaran</div><div class="card-sub">Breakdown hari ini</div></div></div>
+            <div class="card-bd">
+              <div class="donut-wrap">
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="48" fill="none" stroke="#f0f4f8" stroke-width="18"/>
+                  <circle cx="60" cy="60" r="48" fill="none" stroke="#c9973a" stroke-width="18" stroke-dasharray="165.6 136.4" stroke-dashoffset="75.4" transform="rotate(-90 60 60)"/>
+                  <circle cx="60" cy="60" r="48" fill="none" stroke="#2563eb" stroke-width="18" stroke-dasharray="90.4 211.6" stroke-dashoffset="-90.2" transform="rotate(-90 60 60)"/>
+                  <circle cx="60" cy="60" r="48" fill="none" stroke="#0891b2" stroke-width="18" stroke-dasharray="45.2 256.8" stroke-dashoffset="-180.6" transform="rotate(-90 60 60)"/>
+                  <text x="60" y="64" text-anchor="middle" font-family="Cormorant Garamond" font-size="14" font-weight="700" fill="#1a2740">47 trx</text>
+                </svg>
+                <div class="donut-legend">
+                  <div class="dl-item"><div class="dl-dot" style="background:#c9973a"></div><div class="dl-lbl">Tunai</div><div class="dl-val">26<span class="dl-pct">55%</span></div></div>
+                  <div class="dl-item"><div class="dl-dot" style="background:#2563eb"></div><div class="dl-lbl">Transfer</div><div class="dl-val">14<span class="dl-pct">30%</span></div></div>
+                  <div class="dl-item"><div class="dl-dot" style="background:#0891b2"></div><div class="dl-lbl">QRIS</div><div class="dl-val">7<span class="dl-pct">15%</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="g-eq">
+          <div class="card"><div class="card-hd"><div><div class="card-title">Menu Terlaris</div><div class="card-sub">Omset hari ini</div></div></div><div class="card-bd" id="menuRank"></div></div>
+          <div class="card"><div class="card-hd"><div class="card-title">Transaksi Terbaru</div><button class="card-act" onclick="dbPage('transaksi',null)">Lihat Semua →</button></div><div class="card-bd" style="padding:0"><table class="dtbl"><thead><tr><th>No</th><th>Waktu</th><th>Total</th><th>Metode</th></tr></thead><tbody id="recentTrx"></tbody></table></div></div>
+        </div>
+      </div>
+
+      <!-- PAGE: TRANSAKSI -->
+      <div id="dp-transaksi" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <div><div style="font-family:var(--font-d);font-weight:700;font-size:22px;color:var(--navy)">Riwayat Transaksi</div><div style="font-size:13px;color:var(--muted);margin-top:2px">47 transaksi hari ini</div></div>
+          <div style="display:flex;gap:8px">
+            <input type="date" id="fDate" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:var(--font-b);font-size:13px;color:var(--text);background:white">
+            <button onclick="exportCSV()" style="padding:8px 16px;border-radius:8px;border:1.5px solid var(--gold);background:var(--gold-dim);color:var(--gold);font-family:var(--font-b);font-size:13px;font-weight:600;cursor:pointer">⬇ Export CSV</button>
+          </div>
+        </div>
+        <div class="g3" style="margin-bottom:18px">
+          <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:16px"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Total Omset</div><div style="font-family:var(--font-d);font-weight:700;font-size:24px;color:var(--gold)">Rp 1,24jt</div></div>
+          <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:16px"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Rata-rata / Transaksi</div><div style="font-family:var(--font-d);font-weight:700;font-size:24px;color:var(--navy)">Rp 26,4rb</div></div>
+          <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:16px"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Transaksi Terbesar</div><div style="font-family:var(--font-d);font-weight:700;font-size:24px;color:var(--green)">Rp 85.000</div></div>
+        </div>
+        <div class="card"><div class="card-bd" style="padding:0"><table class="dtbl"><thead><tr><th>No Struk</th><th>Waktu</th><th>Item</th><th>Total</th><th>Metode</th><th>Kasir</th></tr></thead><tbody id="allTrx"></tbody></table></div></div>
+      </div>
+
+      <!-- PAGE: LAPORAN -->
+      <div id="dp-laporan" style="display:none">
+        <div style="font-family:var(--font-d);font-weight:700;font-size:22px;color:var(--navy);margin-bottom:18px">Laporan Keuangan</div>
+        <div class="kpi-row">
+          <div class="kpi gold"><div class="kpi-ico">💰</div><div class="kpi-lbl">Omset Bulan Ini</div><div class="kpi-val">Rp 28,4jt</div><div class="kpi-ch up">↑ 18% vs bulan lalu</div></div>
+          <div class="kpi green"><div class="kpi-ico">📈</div><div class="kpi-lbl">Net Profit</div><div class="kpi-val">Rp 8,7jt</div><div class="kpi-ch up">Margin 30,6%</div></div>
+          <div class="kpi blue"><div class="kpi-ico">🛒</div><div class="kpi-lbl">Total COGS</div><div class="kpi-val">Rp 14,2jt</div><div class="kpi-ch dn">50% dari Omset</div></div>
+          <div class="kpi teal"><div class="kpi-ico">⚙️</div><div class="kpi-lbl">Total Opex</div><div class="kpi-val">Rp 5,5jt</div><div class="kpi-ch" style="color:var(--muted)">→ Stabil</div></div>
+        </div>
+        <div class="g-eq">
+          <div class="card"><div class="card-hd"><div class="card-title">Laporan Harian</div><button onclick="window.print()" style="padding:5px 12px;border-radius:7px;border:1.5px solid var(--gold);background:var(--gold-dim);color:var(--gold);font-size:12px;font-weight:600;cursor:pointer">🖨 Print</button></div><div class="card-bd" style="padding:0"><table class="dtbl"><thead><tr><th>Tanggal</th><th>Omset</th><th>Profit</th><th>Margin</th></tr></thead><tbody id="laporanBody"></tbody></table></div></div>
+          <div class="card"><div class="card-hd"><div class="card-title">📈 Ringkasan Investor</div></div><div class="card-bd">
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px;color:var(--muted)">Modal Investor</span><span style="font-weight:700">Rp 50.000.000</span></div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px;color:var(--muted)">Total Net Profit</span><span style="font-weight:700;color:var(--green)">Rp 8.700.000</span></div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px;color:var(--muted)">Bagi Hasil (30%)</span><span style="font-weight:700;color:var(--gold)">Rp 2.610.000</span></div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0"><span style="font-size:13px;color:var(--muted)">ROI</span><span style="font-weight:700;color:var(--green)">17,4%</span></div>
+            <div style="height:8px;background:var(--bg);border-radius:4px;overflow:hidden;margin-top:8px"><div style="height:100%;width:17.4%;background:linear-gradient(90deg,var(--red),var(--gold),var(--green));border-radius:4px"></div></div>
+            <button style="width:100%;margin-top:16px;padding:11px;background:var(--navy);color:white;border:none;border-radius:9px;font-family:var(--font-b);font-weight:600;font-size:13px;cursor:pointer">📄 Export PDF Investor</button>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- PAGE: MENU -->
+      <div id="dp-menu" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <div style="font-family:var(--font-d);font-weight:700;font-size:22px;color:var(--navy)">Menu & Produk</div>
+          <button style="padding:9px 18px;background:var(--navy);color:white;border:none;border-radius:8px;font-family:var(--font-b);font-weight:600;font-size:13px;cursor:pointer">+ Tambah Menu</button>
+        </div>
+        <div class="card"><div class="card-bd" style="padding:0"><table class="dtbl"><thead><tr><th>#</th><th>Nama Menu</th><th>Kategori</th><th>Harga</th><th>Terjual</th><th>Omset</th><th>Aksi</th></tr></thead><tbody id="menuTbl"></tbody></table></div></div>
+      </div>
+
+      <!-- PAGE: OUTLET -->
+      <div id="dp-outlet" style="display:none">
+        <div style="font-family:var(--font-d);font-weight:700;font-size:22px;color:var(--navy);margin-bottom:18px">Manajemen Outlet</div>
+        <div class="g3">
+          <div class="card"><div class="card-bd" style="text-align:center;padding:24px">
+            <div style="font-size:36px;margin-bottom:8px">🏪</div>
+            <div style="font-family:var(--font-d);font-weight:700;font-size:16px;color:var(--navy)">Sanajan Warkop</div>
+            <div style="font-size:12px;color:var(--muted);margin:4px 0 12px">Jl. Contoh No. 1, Jakarta</div>
+            <span class="badge green">● Aktif</span>
+            <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div style="background:var(--bg);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--muted)">Omset Hari Ini</div><div style="font-weight:700;font-size:14px;color:var(--gold)">Rp 1,24jt</div></div>
+              <div style="background:var(--bg);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--muted)">Transaksi</div><div style="font-weight:700;font-size:14px">47</div></div>
+            </div>
+          </div></div>
+          <div class="card" style="border:2px dashed var(--border)"><div class="card-bd" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:180px;cursor:pointer;color:var(--muted)">
+            <div style="font-size:36px;margin-bottom:8px">＋</div>
+            <div style="font-weight:600;font-size:14px">Tambah Outlet</div>
+            <div style="font-size:12px;margin-top:4px">Plan Bisnis Rp 249rb/bln</div>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- PAGE: KASIR -->
+      <div id="dp-kasir" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <div style="font-family:var(--font-d);font-weight:700;font-size:22px;color:var(--navy)">Manajemen Kasir</div>
+          <button style="padding:9px 18px;background:var(--navy);color:white;border:none;border-radius:8px;font-family:var(--font-b);font-weight:600;font-size:13px;cursor:pointer">+ Tambah Kasir</button>
+        </div>
+        <div class="card"><div class="card-bd" style="padding:0"><table class="dtbl"><thead><tr><th>Nama</th><th>Outlet</th><th>Transaksi</th><th>Omset</th><th>Status</th></tr></thead><tbody><tr><td><b>Kasir1</b><div style="font-size:11px;color:var(--muted)">kasir1@sanajan</div></td><td>Sanajan Warkop</td><td>47</td><td style="font-weight:700;color:var(--gold)">Rp 1,24jt</td><td><span class="badge green">● Online</span></td></tr></tbody></table></div></div>
+      </div>
+
+      <!-- PAGE: INVESTOR -->
+      <div id="dp-investor" style="display:none">
+        <div style="font-family:var(--font-d);font-weight:700;font-size:22px;color:var(--navy);margin-bottom:18px">Laporan Investor</div>
+        <div style="background:linear-gradient(135deg,var(--navy),var(--navy2));border-radius:var(--radius);padding:28px;color:white;margin-bottom:20px">
+          <div style="font-size:12px;color:#8fa3c8;margin-bottom:4px">Investor</div>
+          <div style="font-family:var(--font-d);font-weight:700;font-size:22px;margin-bottom:20px">Bapak Investor 💼</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+            <div><div style="font-size:11px;color:#8fa3c8">Modal</div><div style="font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--gold-light)">Rp 50jt</div></div>
+            <div><div style="font-size:11px;color:#8fa3c8">Net Profit</div><div style="font-family:var(--font-d);font-size:22px;font-weight:700;color:#4ade80">Rp 8,7jt</div></div>
+            <div><div style="font-size:11px;color:#8fa3c8">Bagi Hasil 30%</div><div style="font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--gold-light)">Rp 2,61jt</div></div>
+            <div><div style="font-size:11px;color:#8fa3c8">ROI</div><div style="font-family:var(--font-d);font-size:22px;font-weight:700;color:#4ade80">17,4%</div></div>
+          </div>
+        </div>
+        <button style="padding:13px 28px;background:var(--gold);color:white;border:none;border-radius:10px;font-family:var(--font-b);font-weight:700;font-size:14px;cursor:pointer;margin-right:10px">📄 Export PDF Investor</button>
+        <button onclick="window.open('https://wa.me/6289508053795?text=Halo%2C%20berikut%20laporan%20investor%20KasirPro%20bulan%20ini.','_blank')" style="padding:13px 28px;background:white;border:1.5px solid var(--border);color:var(--text);border-radius:10px;font-family:var(--font-b);font-weight:600;font-size:14px;cursor:pointer">📲 Share via WhatsApp</button>
+      </div>
+
+      <!-- PAGE: SETTING -->
+      <div id="dp-setting" style="display:none">
+        <div style="font-family:var(--font-d);font-weight:700;font-size:22px;color:var(--navy);margin-bottom:18px">Pengaturan</div>
+        <div class="g-eq">
+          <div class="card"><div class="card-hd"><div class="card-title">Info Warkop</div></div><div class="card-bd" style="display:flex;flex-direction:column;gap:12px">
+            <div><label style="font-size:12px;color:var(--muted);font-weight:600;display:block;margin-bottom:5px">Nama Warkop</label><input value="Sanajan Warkop" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:var(--font-b);font-size:13px;outline:none"></div>
+            <div><label style="font-size:12px;color:var(--muted);font-weight:600;display:block;margin-bottom:5px">Alamat</label><input placeholder="Jl. ..." style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:var(--font-b);font-size:13px;outline:none"></div>
+            <div><label style="font-size:12px;color:var(--muted);font-weight:600;display:block;margin-bottom:5px">No. WhatsApp</label><input placeholder="08xx..." style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:var(--font-b);font-size:13px;outline:none"></div>
+            <button style="padding:10px;background:var(--navy);color:white;border:none;border-radius:8px;font-family:var(--font-b);font-weight:600;cursor:pointer">Simpan Perubahan</button>
+          </div></div>
+          <div class="card"><div class="card-hd"><div class="card-title">☁️ Google Sheets Sync</div></div><div class="card-bd" style="display:flex;flex-direction:column;gap:12px">
+            <div style="padding:10px 14px;border-radius:8px;background:var(--green-dim);border:1px solid #16a34a25;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--green)">✅ Terkoneksi ke Google Sheets</div>
+            <div><label style="font-size:12px;color:var(--muted);font-weight:600;display:block;margin-bottom:5px">URL Apps Script</label><input value="https://script.google.com/macros/s/..." style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:var(--font-b);font-size:11px;outline:none"></div>
+            <button style="padding:10px;background:var(--surface2);border:1.5px solid var(--border);color:var(--text);border-radius:8px;font-family:var(--font-b);font-weight:600;cursor:pointer">🔗 Test Koneksi</button>
+          </div></div>
+        </div>
+
+        <!-- AI KEY CARD -->
+        <div class="card" style="margin-top:0">
+          <div class="card-hd">
+            <div>
+              <div class="card-title">🤖 AI Agent "Kopi"</div>
+              <div class="card-sub">Masukkan Anthropic API key biar AI bisa jalan</div>
+            </div>
+            <span id="aiKeyStatus" style="font-size:12px;font-weight:600;color:var(--muted)">Belum diset</span>
+          </div>
+          <div class="card-bd" style="display:flex;flex-direction:column;gap:12px">
+
+            <!-- status bar -->
+            <div id="aiKeyBar" style="padding:10px 14px;border-radius:8px;background:var(--red-dim);border:1px solid #dc262625;font-size:13px;font-weight:600;color:var(--red)">
+              ❌ API key belum diset — AI Agent tidak aktif
+            </div>
+
+            <div>
+              <label style="font-size:12px;color:var(--muted);font-weight:600;display:block;margin-bottom:5px">Anthropic API Key</label>
+              <div style="display:flex;gap:8px">
+                <input id="apiKeyInput" type="password" placeholder="AIzaSy..." style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:var(--font-b);font-size:12px;outline:none;min-width:0">
+                <button onclick="toggleApiKeyVis()" id="apiKeyToggle" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);cursor:pointer;font-size:13px;flex-shrink:0">👁</button>
+              </div>
+            </div>
+
+            <button onclick="saveApiKey()" style="padding:11px;background:var(--navy);color:white;border:none;border-radius:8px;font-family:var(--font-b);font-weight:700;font-size:13px;cursor:pointer">💾 Simpan API Key</button>
+            <button onclick="clearApiKey()" style="padding:9px;background:transparent;color:var(--red);border:1px solid #dc262630;border-radius:8px;font-family:var(--font-b);font-weight:600;font-size:12px;cursor:pointer">🗑 Hapus API Key</button>
+
+            <div style="background:var(--bg);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.8">
+              <b style="color:var(--navy)">Cara dapat API key (gratis):</b><br>
+              1. Buka <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--gold);font-weight:600">aistudio.google.com/apikey</a> → login Google<br>
+              2. Tap <b>Create API Key</b> → copy<br>
+              3. Paste di atas → Simpan<br>
+              <span style="color:var(--green);font-weight:600">✓ 100% Gratis! Tanpa kartu kredit!</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /db-content -->
+  </div><!-- /db-main -->
+</div><!-- /view-dashboard -->
+
+<script>
+// ─── DATA ───
+const DATA={
+  chart:[{d:'Sen',o:980,p:271},{d:'Sel',o:1100,p:312},{d:'Rab',o:1380,p:445},{d:'Kam',o:870,p:198},{d:'Jum',o:1560,p:510},{d:'Sab',o:1890,p:620},{d:'Min',o:1240,p:387}],
+  menu:[{n:'Kopi Susu',c:'Minuman',pr:8000,q:38,o:304000},{n:'Es Teh Manis',c:'Minuman',pr:4000,q:31,o:124000},{n:'Kopi Hitam',c:'Minuman',pr:5000,q:29,o:145000},{n:'Mie Goreng',c:'Makanan',pr:10000,q:22,o:220000},{n:'Nasi Goreng',c:'Makanan',pr:12000,q:18,o:216000},{n:'Gorengan',c:'Makanan',pr:2000,q:45,o:90000}],
+  trx:[{no:'TRX-0047',t:'14:32',it:'Kopi Susu×2, Gorengan×3',tot:22000,m:'tunai'},{no:'TRX-0046',t:'14:18',it:'Nasi Goreng×1, Es Teh×2',tot:20000,m:'qris'},{no:'TRX-0045',t:'14:05',it:'Kopi Hitam×3',tot:15000,m:'tunai'},{no:'TRX-0044',t:'13:54',it:'Mie Goreng×2, Kopi Susu×1',tot:28000,m:'transfer'},{no:'TRX-0043',t:'13:41',it:'Gorengan×5, Es Teh×1',tot:14000,m:'tunai'},{no:'TRX-0042',t:'13:27',it:'Kopi Susu×3, Mie Goreng×1',tot:34000,m:'qris'},{no:'TRX-0041',t:'12:58',it:'Nasi Goreng×2, Kopi Hitam×2',tot:34000,m:'transfer'}],
+  lap:[{tgl:'09 Mar',o:1240000,p:387000,m:31.2},{tgl:'08 Mar',o:1100000,p:312000,m:28.4},{tgl:'07 Mar',o:980000,p:271000,m:27.7},{tgl:'06 Mar',o:1380000,p:445000,m:32.2},{tgl:'05 Mar',o:870000,p:198000,m:22.8},{tgl:'04 Mar',o:1560000,p:510000,m:32.7}]
+};
+const fmt=n=>n>=1000000?'Rp '+(n/1000000).toFixed(2)+'jt':n>=1000?'Rp '+Math.round(n/1000)+'rb':'Rp '+n;
+
+// ─── VIEW SWITCH ───
+let dashboardInited = false;
+function showDashboard(){
+  document.getElementById('view-landing').style.cssText = 'display:none';
+  document.getElementById('view-dashboard').style.cssText = 'display:flex;flex-direction:row;min-height:100vh';
+  document.body.style.background = '#f0f4f8';
+  if(!dashboardInited){ initDashboard(); dashboardInited = true; }
+}
+function showLanding(){
+  document.getElementById('view-dashboard').style.cssText = 'display:none';
+  document.getElementById('view-landing').style.cssText  = 'display:block';
+  document.body.style.background = '#ffffff';
+  window.scrollTo(0, 0);
+}
+
+// ─── DASHBOARD PAGES ───
+const PAGES=['dashboard','transaksi','laporan','menu','outlet','kasir','investor','setting'];
+const TITLES={dashboard:'Dashboard',transaksi:'Transaksi',laporan:'Laporan Keuangan',menu:'Menu & Produk',outlet:'Outlet',kasir:'Kasir',investor:'Investor',setting:'Pengaturan'};
+function dbPage(name,el){
+  PAGES.forEach(p=>{const e=document.getElementById('dp-'+p);if(e)e.style.display='none';});
+  const pg=document.getElementById('dp-'+name);if(pg)pg.style.display='block';
+  document.getElementById('tbTitle').textContent=TITLES[name]||name;
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  if(el)el.classList.add('active');
+}
+
+// ─── KPI FILTER ───
+function setKpi(f,el){
+  document.querySelectorAll('.df-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');
+  const d={hari:{o:'Rp 1,24jt',p:'Rp 387rb',t:'47',i:'183'},minggu:{o:'Rp 8,02jt',p:'Rp 2,34jt',t:'298',i:'1.140'},bulan:{o:'Rp 28,4jt',p:'Rp 8,7jt',t:'1.024',i:'4.280'}};
+  const v=d[f];
+  document.getElementById('k-omset').textContent=v.o;document.getElementById('k-profit').textContent=v.p;
+  document.getElementById('k-trx').textContent=v.t;document.getElementById('k-item').textContent=v.i;
+}
+
+// ─── RENDER FUNCTIONS ───
+function renderBarChart(){
+  const max=Math.max(...DATA.chart.map(d=>d.o));
+  document.getElementById('barChart').innerHTML=DATA.chart.map(d=>`
+    <div class="bar-wrap">
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:3px;width:100%">
+        <div class="bar omset" style="height:${Math.round((d.o/max)*160)}px" title="${fmt(d.o)}"></div>
+        <div class="bar profit" style="height:${Math.round((d.p/max)*160)}px" title="${fmt(d.p)}"></div>
+      </div>
+      <div class="bar-lbl">${d.d}</div>
+    </div>`).join('');
+}
+function renderMenuRank(){
+  const mx=Math.max(...DATA.menu.map(m=>m.o));
+  document.getElementById('menuRank').innerHTML=DATA.menu.map((m,i)=>`
+    <div class="mr-item"><div class="mr-num">${i+1}</div><div class="mr-bwrap"><div class="mr-name">${m.n}</div><div class="mr-track"><div class="mr-fill" style="width:${Math.round((m.o/mx)*100)}%"></div></div></div><div class="mr-stats"><div class="mr-omset">${fmt(m.o)}</div><div class="mr-qty">×${m.q}</div></div></div>`).join('');
+}
+function renderRecentTrx(){
+  document.getElementById('recentTrx').innerHTML=DATA.trx.slice(0,5).map(t=>`
+    <tr><td><b style="font-size:12px">${t.no}</b></td><td>${t.t}</td><td style="font-weight:700;color:var(--gold)">${fmt(t.tot)}</td><td><span class="badge ${t.m==='tunai'?'gold':t.m==='qris'?'teal':'green'}">${t.m.toUpperCase()}</span></td></tr>`).join('');
+}
+function renderAllTrx(){
+  document.getElementById('allTrx').innerHTML=DATA.trx.map(t=>`
+    <tr><td><b>${t.no}</b></td><td>${t.t}</td><td style="font-size:12px">${t.it}</td><td style="font-weight:700;color:var(--gold)">${fmt(t.tot)}</td><td><span class="badge ${t.m==='tunai'?'gold':t.m==='qris'?'teal':'green'}">${t.m.toUpperCase()}</span></td><td>Kasir1</td></tr>`).join('');
+}
+function renderLaporan(){
+  document.getElementById('laporanBody').innerHTML=DATA.lap.map(d=>`
+    <tr><td>${d.tgl}</td><td style="font-weight:700;color:var(--gold)">${fmt(d.o)}</td><td style="font-weight:700;color:var(--green)">${fmt(d.p)}</td><td><span class="badge ${d.m>=30?'green':d.m>=20?'gold':'red'}">${d.m.toFixed(1)}%</span></td></tr>`).join('');
+}
+function renderMenuTbl(){
+  document.getElementById('menuTbl').innerHTML=DATA.menu.map((m,i)=>`
+    <tr><td>${i+1}</td><td><b>${m.n}</b></td><td><span class="badge ${m.c==='Minuman'?'teal':'gold'}">${m.c}</span></td><td>${fmt(m.pr)}</td><td>${m.q} pcs</td><td style="font-weight:700;color:var(--gold)">${fmt(m.o)}</td><td><button style="padding:3px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer">Edit</button></td></tr>`).join('');
+}
+function exportCSV(){
+  const r=[['No','Waktu','Items','Total','Metode'],...DATA.trx.map(t=>[t.no,t.t,t.it,t.tot,t.m])];
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([r.map(x=>x.join(',')).join('\n')],{type:'text/csv'}));a.download='transaksi-kasirpro.csv';a.click();
+}
+
+// ─── INIT ───
+function initDashboard(){
+  document.getElementById('tbDate').textContent=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  if(document.getElementById('fDate'))document.getElementById('fDate').value=new Date().toISOString().split('T')[0];
+  renderBarChart();renderMenuRank();renderRecentTrx();renderAllTrx();renderLaporan();renderMenuTbl();
+  updateApiKeyUI();
+}
+
+// ─── API KEY MANAGEMENT ───
+function saveApiKey(){
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if(!key || !key.startsWith('AIza')){
+    alert('API key tidak valid bro! Harus diawali AIza...');
+    return;
+  }
+  localStorage.setItem('kp_apikey', key);
+  updateApiKeyUI();
+  alert('✅ API key tersimpan! AI Agent "Kopi" siap dipakai.');
+}
+function clearApiKey(){
+  if(!confirm('Yakin hapus API key?')) return;
+  localStorage.removeItem('kp_apikey');
+  document.getElementById('apiKeyInput').value='';
+  updateApiKeyUI();
+}
+function toggleApiKeyVis(){
+  const inp = document.getElementById('apiKeyInput');
+  inp.type = inp.type==='password'?'text':'password';
+}
+function updateApiKeyUI(){
+  const key = localStorage.getItem('kp_apikey')||'';
+  const bar = document.getElementById('aiKeyBar');
+  const status = document.getElementById('aiKeyStatus');
+  const inp = document.getElementById('apiKeyInput');
+  if(!bar) return;
+  if(key){
+    bar.style.background='var(--green-dim)';bar.style.borderColor='#16a34a25';bar.style.color='var(--green)';
+    bar.textContent='✅ API key aktif — AI Agent "Kopi" siap!';
+    status.textContent='✅ Aktif';status.style.color='var(--green)';
+    inp.value=key.slice(0,12)+'••••••••••••••••';
+  } else {
+    bar.style.background='var(--red-dim)';bar.style.borderColor='#dc262625';bar.style.color='var(--red)';
+    bar.textContent='❌ API key belum diset — AI Agent tidak aktif';
+    status.textContent='Belum diset';status.style.color='var(--muted)';
+  }
+}
+
+// ─── LANDING SCROLL ANIMATIONS ───
+const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:.15});
+document.querySelectorAll('.fade-up').forEach(el=>obs.observe(el));
+window.addEventListener('scroll',()=>{
+  const n=document.getElementById('lnav');
+  if(n)n.style.boxShadow=window.scrollY>20?'0 4px 24px rgba(0,0,0,.08)':'none';
+});
+</script>
+
+<!-- ════════════════════════════════════════════════════════
+     AI AGENT — FLOATING CHAT BUBBLE
+════════════════════════════════════════════════════════ -->
+<style>
+/* Bubble button */
+#ai-bubble{position:fixed;bottom:28px;right:28px;z-index:9999;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#0a1628,#c9973a);border:none;cursor:pointer;box-shadow:0 8px 32px rgba(10,22,40,.35);display:flex;align-items:center;justify-content:center;font-size:26px;transition:all .3s;animation:bubblePop .5s cubic-bezier(.34,1.56,.64,1)}
+#ai-bubble:hover{transform:scale(1.1);box-shadow:0 12px 40px rgba(10,22,40,.45)}
+#ai-bubble .notif-ring{position:absolute;top:-3px;right:-3px;width:18px;height:18px;border-radius:50%;background:#c9973a;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white}
+@keyframes bubblePop{0%{transform:scale(0)}100%{transform:scale(1)}}
+
+/* Chat window */
+#ai-chat{position:fixed;bottom:100px;right:28px;z-index:9999;width:380px;height:560px;background:white;border-radius:20px;box-shadow:0 24px 80px rgba(10,22,40,.2);display:none;flex-direction:column;overflow:hidden;border:1px solid #e2e8f0;animation:chatOpen .25s cubic-bezier(.34,1.56,.64,1)}
+#ai-chat.open{display:flex}
+@keyframes chatOpen{0%{opacity:0;transform:scale(.9) translateY(20px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+
+/* Header */
+.ai-hd{background:linear-gradient(135deg,#0a1628 0%,#162d52 100%);padding:16px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.ai-hd-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#c9973a,#e8b85a);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;position:relative}
+.ai-hd-av::after{content:'';position:absolute;bottom:1px;right:1px;width:10px;height:10px;border-radius:50%;background:#16a34a;border:2px solid #0a1628}
+.ai-hd-info{flex:1}
+.ai-hd-name{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:16px;color:white}
+.ai-hd-status{font-size:11px;color:#8fa3c8;margin-top:1px}
+.ai-hd-close{width:30px;height:30px;border-radius:50%;background:#ffffff15;border:none;color:white;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.ai-hd-close:hover{background:#ffffff30}
+
+/* Suggested chips */
+.ai-chips{padding:10px 14px 4px;display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;border-bottom:1px solid #f0f4f8}
+.ai-chip{padding:5px 11px;border-radius:20px;border:1px solid #e2e8f0;background:#f8fafc;color:#6b7a96;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;font-family:'Outfit',sans-serif}
+.ai-chip:hover{border-color:#c9973a;color:#c9973a;background:#c9973a10}
+
+/* Messages */
+.ai-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.ai-msgs::-webkit-scrollbar{width:4px}
+.ai-msgs::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:2px}
+
+.msg{display:flex;gap:8px;align-items:flex-end}
+.msg.user{flex-direction:row-reverse}
+.msg-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.msg-av.bot{background:linear-gradient(135deg,#0a1628,#162d52)}
+.msg-av.user{background:#c9973a}
+.msg-bubble{max-width:78%;padding:10px 13px;border-radius:16px;font-size:13px;line-height:1.6;font-family:'Outfit',sans-serif}
+.msg-bubble.bot{background:#f0f4f8;color:#1a2740;border-radius:16px 16px 16px 4px}
+.msg-bubble.user{background:linear-gradient(135deg,#0a1628,#162d52);color:white;border-radius:16px 16px 4px 16px}
+.msg-bubble b{color:#c9973a}
+.msg-bubble.bot b{color:#0a1628}
+
+/* Typing indicator */
+.typing{display:flex;align-items:center;gap:4px;padding:10px 13px;background:#f0f4f8;border-radius:16px 16px 16px 4px;width:fit-content}
+.typing span{width:7px;height:7px;border-radius:50%;background:#94a3b8;animation:typingDot 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes typingDot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+/* Input */
+.ai-input-wrap{padding:12px 14px;border-top:1px solid #f0f4f8;display:flex;gap:8px;align-items:flex-end;flex-shrink:0}
+#ai-input{flex:1;border:1.5px solid #e2e8f0;border-radius:12px;padding:9px 13px;font-family:'Outfit',sans-serif;font-size:13px;color:#1a2740;outline:none;resize:none;max-height:100px;line-height:1.5;transition:border-color .2s}
+#ai-input:focus{border-color:#c9973a}
+#ai-send{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#0a1628,#c9973a);border:none;color:white;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+#ai-send:hover{transform:scale(1.05)}
+#ai-send:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* Mobile */
+@media(max-width:480px){
+  #ai-chat{width:calc(100vw - 24px);right:12px;bottom:90px;height:70vh}
+  #ai-bubble{bottom:20px;right:20px}
+}
+</style>
+
+<!-- Bubble -->
+<button id="ai-bubble" onclick="toggleChat()">
+  ☕
+  <div class="notif-ring">AI</div>
+</button>
+
+<!-- Chat Window -->
+<div id="ai-chat">
+  <div class="ai-hd">
+    <div class="ai-hd-av">🤖</div>
+    <div class="ai-hd-info">
+      <div class="ai-hd-name">Kopi — AI Assistant</div>
+      <div class="ai-hd-status">● Online · Siap membantu bisnis lu</div>
+    </div>
+    <button class="ai-hd-close" onclick="toggleChat()">✕</button>
+  </div>
+
+  <div class="ai-chips" id="aiChips">
+    <div class="ai-chip" onclick="sendChip(this)">💰 Harga paket</div>
+    <div class="ai-chip" onclick="sendChip(this)">☁️ Setup Google Sheets</div>
+    <div class="ai-chip" onclick="sendChip(this)">🖨️ Koneksi printer</div>
+    <div class="ai-chip" onclick="sendChip(this)">📊 Cara baca laporan</div>
+    <div class="ai-chip" onclick="sendChip(this)">💡 Tips naikin omset</div>
+  </div>
+
+  <div class="ai-msgs" id="aiMsgs">
+    <div class="msg">
+      <div class="msg-av bot">☕</div>
+      <div class="msg-bubble bot">Halo! Gue <b>Kopi</b>, AI assistant KasirPro. 👋<br><br>Gue bisa bantu lu soal <b>fitur & harga</b>, <b>setup Google Sheets</b>, <b>koneksi printer Bluetooth</b>, sampai <b>analisis bisnis warkop</b> lu.<br><br>Mau tanya apa?</div>
+    </div>
+  </div>
+
+  <div class="ai-input-wrap">
+    <textarea id="ai-input" placeholder="Tanya sesuatu..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+    <button id="ai-send" onclick="sendMsg()">➤</button>
+  </div>
+</div>
+
+<script>
+// ════ AI AGENT ════
+const SYSTEM_PROMPT = `Kamu adalah "Kopi", AI assistant untuk KasirPro — aplikasi kasir digital untuk UMKM Indonesia, khususnya warkop (warung kopi) dan usaha kecil.
+
+TENTANG KASIRPRO:
+- Aplikasi kasir digital berbasis web (HTML), bisa dipakai offline, tanpa install apapun
+- Fitur: Kasir digital (tunai/transfer/QRIS), print struk Bluetooth (ESC/POS), sync Google Sheets realtime, laporan harian otomatis (omset/COGS/opex/profit/margin), rekap bulanan, laporan investor PDF, PIN keamanan
+- Bluetooth printing: support Chrome Android, kompatibel Xprinter XP-58IIH, GOOJPRT PT-210, ZJ-Series, Rongta, iDPRT, semua printer ESC/POS
+- Google Sheets sync: pakai Google Apps Script (gratis), setup 5 menit, offline-first (antrian lokal, auto-sync saat online)
+
+HARGA:
+- Gratis: 1 kasir, kasir digital unlimited, print struk, laporan harian (tanpa sync Sheets & laporan investor)
+- Pro: Rp 99.000/bulan — semua fitur lengkap, 1 outlet (hemat Rp 200rb kalau bayar tahunan)
+- Bisnis: Rp 249.000/bulan — hingga 5 kasir/outlet, dashboard owner terpusat
+
+KONTAK: WA 6289508053795
+
+CARA MENJAWAB:
+- Gunakan Bahasa Indonesia yang santai, friendly, kayak ngobrol sama teman
+- Pakai emoji secukupnya
+- Kalau soal bisnis/keuangan, kasih saran yang praktis dan actionable
+- Jawaban singkat tapi padat, maksimal 4-5 kalimat kecuali kalau perlu penjelasan panjang
+- Kalau ada yang mau beli/daftar, arahkan ke tombol "Coba Gratis" atau WA 6289508053795
+- Jangan jawab hal yang tidak berhubungan dengan KasirPro atau bisnis UMKM`;
+
+let chatHistory = [];
+let isTyping = false;
+let chatOpened = false;
+
+function toggleChat(){
+  const chat = document.getElementById('ai-chat');
+  chat.classList.toggle('open');
+  if(chat.classList.contains('open')){
+    document.getElementById('ai-input').focus();
+    document.getElementById('ai-bubble').querySelector('.notif-ring').style.display='none';
+    scrollMsgs();
+  }
+}
+
+function scrollMsgs(){
+  const el = document.getElementById('aiMsgs');
+  setTimeout(()=>el.scrollTop=el.scrollHeight, 50);
+}
+
+function autoResize(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,100)+'px';
+}
+
+function handleKey(e){
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMsg(); }
+}
+
+function sendChip(el){
+  const text = el.textContent.replace(/^[^\s]+\s/,'').trim();
+  document.getElementById('ai-input').value = text;
+  // hide chips after first use
+  document.getElementById('aiChips').style.display='none';
+  sendMsg();
+}
+
+function addMsg(role, text){
+  const msgs = document.getElementById('aiMsgs');
+  const isUser = role==='user';
+  const div = document.createElement('div');
+  div.className = 'msg'+(isUser?' user':'');
+  div.innerHTML = `
+    <div class="msg-av ${isUser?'user':'bot'}">${isUser?'👤':'☕'}</div>
+    <div class="msg-bubble ${isUser?'user':'bot'}">${text}</div>`;
+  msgs.appendChild(div);
+  scrollMsgs();
+}
+
+function showTyping(){
+  const msgs = document.getElementById('aiMsgs');
+  const div = document.createElement('div');
+  div.className='msg'; div.id='typing-indicator';
+  div.innerHTML=`<div class="msg-av bot">☕</div><div class="typing"><span></span><span></span><span></span></div>`;
+  msgs.appendChild(div);
+  scrollMsgs();
+}
+
+function hideTyping(){
+  const t = document.getElementById('typing-indicator');
+  if(t) t.remove();
+}
+
+// Format markdown-lite: **bold**, newline
+function formatText(text){
+  return text
+    .replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')
+    .replace(/\n/g,'<br>');
+}
+
+async function sendMsg(){
+  if(isTyping) return;
+  const input = document.getElementById('ai-input');
+  const text = input.value.trim();
+  if(!text) return;
+
+  // Hide chips permanently
+  document.getElementById('aiChips').style.display='none';
+
+  input.value=''; input.style.height='auto';
+  document.getElementById('ai-send').disabled=true;
+  isTyping=true;
+
+  addMsg('user', text);
+  chatHistory.push({role:'user', content:text});
+
+  showTyping();
+
+  // Ambil API key dari localStorage (diset di Setting dashboard)
+  const apiKey = localStorage.getItem('kp_apikey') || '';
+  if(!apiKey){
+    hideTyping();
+    addMsg('bot','⚙️ API key belum diset bro! Buka <b>Dashboard → Setting → AI Agent</b> dulu ya.');
+    isTyping=false;
+    document.getElementById('ai-send').disabled=false;
+    return;
+  }
+
+  // Susun history untuk Gemini format
+  const geminiMsgs = chatHistory.map(m=>({
+    role: m.role==='assistant'?'model':'user',
+    parts:[{text: m.content}]
+  }));
+
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      system_instruction:{parts:[{text: SYSTEM_PROMPT}]},
+      contents: geminiMsgs,
+      generationConfig:{maxOutputTokens:800,temperature:0.7}
+    })
+  });
+  const data = await res.json();
+  hideTyping();
+
+  const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Maaf, ada gangguan. Coba lagi ya! 🙏';
+  chatHistory.push({role:'assistant', content:reply});
+  addMsg('bot', formatText(reply));
+
+  } catch(err){
+    hideTyping();
+    addMsg('bot', 'Koneksi bermasalah nih bro. Coba lagi atau langsung WA aja ya! 📱');
+  }
+
+  isTyping=false;
+  document.getElementById('ai-send').disabled=false;
+  document.getElementById('ai-input').focus();
+}
+
+// Show bubble notif after 3s
+setTimeout(()=>{
+  const ring = document.getElementById('ai-bubble')?.querySelector('.notif-ring');
+  if(ring) ring.style.display='flex';
+},3000);
+</script>
+</body>
+</html>
