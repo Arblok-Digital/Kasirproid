@@ -1,2 +1,2 @@
-# Kasirproid.apk
+# Kasirproid Landingpage 
 Kasir untuk Umkm F&B 
