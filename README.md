@@ -1,2 +1,2 @@
-# Kasirproid
-Kasir untuk Umkm 
+# Kasirproid.apk
+Kasir untuk Umkm F&B 
